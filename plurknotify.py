@@ -31,8 +31,6 @@ while(True):
                                    'no_data': '1'}))
     #print json.load(login_data)
     #login_data = json.load(login_data_json)
-
-    #print time.strftime(ISOTIMEFORMAT,time.gmtime(time.time()))
     recent_plurks = opener.open(get_api_url('/Polling/getPlurks'),
                          encode({'api_key': api_key,
                                  'offset': offset,
@@ -48,11 +46,11 @@ while(True):
 
     friends = {}
     for uid in plurks['plurk_users']:
-        friends[uid] = plurks['plurk_users'][uid]['nick_name']
+        friends[uid] = plurks['plurk_users'][uid]['display_name']
     print friends
 
     for p in plurks['plurks']:
-        n = pynotify.Notification (str(friends[p['owner_id']]) + ' ' + str(p['qualifier_translated']),str(p['content']))
+        n = pynotify.Notification (friends[str(p['owner_id'])] + ' ' + p['qualifier_translated'],str(p['content']))
         n.show()
     print 'finish a cycle'
     time.sleep(180)
