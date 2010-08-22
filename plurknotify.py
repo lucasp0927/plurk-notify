@@ -27,25 +27,29 @@ while(True):
     login_data_json = opener.open('https://www.plurk.com/API/Users/login',
                            encode({'username': username,
                                    'password': password,
-                                   'api_key': api_key}))
+                                   'api_key': api_key,
+                                   'no_data': '1'}))
     #print json.load(login_data)
-    login_data = json.load(login_data_json)
-    friends = {}
-    for uid in login_data['plurks_users']:
-        friends[uid] = login_data['plurks_users'][uid]['nick_name']
-    print friends
+    #login_data = json.load(login_data_json)
+
     #print time.strftime(ISOTIMEFORMAT,time.gmtime(time.time()))
-    fp2 = opener.open(get_api_url('/Polling/getPlurks'),
-                     encode({'api_key': api_key,
-                             'offset': offset,
-                             'limit' : 5}))
+    recent_plurks = opener.open(get_api_url('/Polling/getPlurks'),
+                         encode({'api_key': api_key,
+                                 'offset': offset,
+                                 'limit' : 5}))
     offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
     print 'offset =',
     print offset
-    plurk = json.load(fp2)
-    print plurk
-    print len(plurk['plurks'])
-    for p in plurk['plurks']:
+    plurks = json.load(recent_plurks)
+    print plurks
+    print len(plurks['plurks'])
+
+    friends = {}
+    for uid in plurks['plurk_users']:
+        friends[uid] = plurks['plurk_users'][uid]['nick_name']
+    print friends
+
+    for p in plurks['plurks']:
         n = pynotify.Notification (friends[p['user_id']] + ' ' + p['qualifier_translated'],str(p['content']))
         n.show()
     print 'finish a cycle'
