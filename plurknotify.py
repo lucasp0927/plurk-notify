@@ -24,7 +24,7 @@ offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 print 'offset =',
 print offset
 while(True):
-    time.sleep(10)                            
+    time.sleep(180)                            
     
     opener.open('https://www.plurk.com/API/Users/login',
                      encode({'username': username,
