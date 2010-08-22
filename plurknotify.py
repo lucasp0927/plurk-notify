@@ -46,11 +46,17 @@ while(True):
 
     friends = {}
     for uid in plurks['plurk_users']:
-        friends[uid] = plurks['plurk_users'][uid]['display_name']
+        if 'display_name' in plurks['plurk_users'][uid]:
+            friends[uid] = plurks['plurk_users'][uid]['display_name']
+        else:
+            friends[uid] = plurks['plurk_users'][uid]['nick_name']
     print friends
 
     for p in plurks['plurks']:
-        n = pynotify.Notification (friends[str(p['owner_id'])] + ' ' + p['qualifier_translated'],str(p['content']))
+        if 'qualifier_translated' in p:
+            n = pynotify.Notification (friends[str(p['owner_id'])] + ' ' + p['qualifier_translated'],str(p['content']))
+        else:
+            n = pynotify.Notification (friends[str(p['owner_id'])] + ' ' + p['qualifier'],str(p['content']))
         n.show()
     print 'finish a cycle'
     time.sleep(180)
