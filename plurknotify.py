@@ -36,10 +36,12 @@ while(True):
     recent_plurks = opener.open(get_api_url('/Polling/getPlurks'),
                          encode({'api_key': api_key,
                                  'offset': offset,
-                                 'limit' : 5}))
+                                 'limit' : 20}))
+
     offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
     print 'offset =',
     print offset
+
     plurks = json.load(recent_plurks)
     print plurks
     print len(plurks['plurks'])
@@ -50,7 +52,7 @@ while(True):
     print friends
 
     for p in plurks['plurks']:
-        n = pynotify.Notification (friends[p['user_id']] + ' ' + p['qualifier_translated'],str(p['content']))
+        n = pynotify.Notification (str(friends[p['owner_id']]) + ' ' + str(p['qualifier_translated']),str(p['content']))
         n.show()
     print 'finish a cycle'
     time.sleep(180)
