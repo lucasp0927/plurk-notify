@@ -17,20 +17,19 @@ username = 'lucasp0927'
 #read password
 passfile="password.dat"
 infile = open(passfile,"r")
-password = infile.readline()
+password = infile.readline().rstrip()
 pynotify.init("plurk")
 
 offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 print 'offset =',
 print offset
 while(True):
-    time.sleep(180)                            
+    time.sleep(10)                            
     
     opener.open('https://www.plurk.com/API/Users/login',
                      encode({'username': username,
                              'password': password,
                              'api_key': api_key}))
-    print time.strftime(ISOTIMEFORMAT,time.gmtime(time.time())) 
     fp2 = opener.open(get_api_url('/Polling/getPlurks'),
                      encode({'api_key': api_key,
                              'offset': offset,
