@@ -66,7 +66,7 @@ class PlurkNotify:
     def parse_plurk_data(self, plurk_data):
         for uid in plurk_data['plurk_users']:
             self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
-            self.friend_pic[uid] = self.get_avater(plurk_data['plurk_users'][uid])
+            self.friend_pic[uid] = self.get_avater(uid, plurk_data['plurk_users'][uid])
 
     def notify_header(self, plurk):
         return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
