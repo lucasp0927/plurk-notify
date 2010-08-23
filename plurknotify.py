@@ -28,21 +28,21 @@ class PlurkNotify:
     def login(self):
         self.opener.open(self.get_api_url('/Users/login'),
                          self.encode({'username': self.username,
-                                 'password': self.password,
-                                 'api_key':  self.api_key,
-                                 'no_data':  '1'}))
+                                      'password': self.password,
+                                      'api_key':  self.api_key,
+                                      'no_data':  '1'}))
 
     def get_recent_plurks(self):
         plurks = self.opener.open(self.get_api_url('/Polling/getPlurks'),
-                           self.encode({'api_key': self.api_key,
-                                   'offset':  self.offset,
-                                   'limit' :  20}))
+                                  self.encode({'api_key': self.api_key,
+                                               'offset':  self.offset,
+                                               'limit' :  20}))
         return json.load(plurks)
 
     def set_offset(self):
         self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
-    def get_avater(self, uid, plurk_user):
+    def get_avatar(self, uid, plurk_user):
         if plurk_user['has_profile_image'] == 1:
             if plurk_user['avatar'] == None:
                 return 'http://avatars.plurk.com/%s-small.gif' % uid
@@ -50,6 +50,9 @@ class PlurkNotify:
                 return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
         else:
             return 'http://www.plurk.com/static/default_small.gif'
+        
+    def download_avatar(self,url):
+        urllib.urlretrieve(url, os.path.abspath(os.path.curdir)+"/temp.gif" )
 
     def get_name(self, plurk_user):
         if 'display_name' in plurk_user:
@@ -66,7 +69,7 @@ class PlurkNotify:
     def parse_plurk_data(self, plurk_data):
         for uid in plurk_data['plurk_users']:
             self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
-            self.friend_pic[uid] = self.get_avater(uid, plurk_data['plurk_users'][uid])
+            self.friend_pic[uid] = self.get_avatar(uid, plurk_data['plurk_users'][uid])
 
     def notify_header(self, plurk):
         return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
@@ -74,9 +77,10 @@ class PlurkNotify:
 
     def notify_plurks(self, plurk_data):
         for p in plurk_data['plurks']:
+            self.download_avatar(self.friend_pic[str(p['owner_id'])])
             pynotify.Notification(self.notify_header(p),
                                   str(p['content']),
-                                  self.friend_pic[str(p['owner_id'])]).show()
+                                  os.path.abspath(os.path.curdir)+"/temp.gif").show()
 
     def run(self):
         self.login()
@@ -88,5 +92,7 @@ class PlurkNotify:
 
 if __name__ == "__main__":
     p = PlurkNotify()
-    p.run()
+    p.set_offset()
+    while True:
+        p.run()
 
