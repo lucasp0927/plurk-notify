@@ -20,17 +20,19 @@ class PlurkTray:
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_from_stock(gtk.STOCK_ABOUT)
         self.statusIcon.set_visible(True)
-        self.statusIcon.set_tooltip("Plurk Notify")
         self.make_menu()
         self.statusIcon.set_visible(1)
         self.run_cb()
         gtk.main()
     
     def make_menu(self):
+        print "make menu"
         self.menu = gtk.Menu()
 #        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
         self.menuItem = gtk.MenuItem(label=self.notify_state(),use_underline=True)
         self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
+        self.menu.append(self.menuItem)
+        self.menuItem = gtk.MenuItem(label='Unread Plurk: '+str(self.p.unReadCount),use_underline=False)
         self.menu.append(self.menuItem)
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
@@ -66,11 +68,18 @@ class PlurkTray:
                 
     def notify(self):
         print 'start notifying'
-        if self.first == 1:
-            if notify_on == True:
+        if self.first == 0:
+            self.first = 1
+            self.p.set_offset()
+            if self.notify_on == True:
                 self.p.run()
         else:
-            self.first = 1
+            if self.notify_on == True:
+                self.p.run()
+
+        self.make_menu()
+        self.statusIcon.set_tooltip("unread plurk: "+str(self.p.unReadCount))
+
         glib.timeout_add_seconds(120, self.notify)
         self.p.set_offset()
 #        while True:
@@ -78,11 +87,13 @@ class PlurkTray:
 
 class PlurkNotify:
     def __init__(self):
+        print 'initialize plurk'
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
         self.encode = urllib.urlencode
         self.offset = None
+        self.unReadCount = 0
         self.friend_name = {}
         self.friend_pic = {}
         pynotify.init("plurk")
@@ -106,6 +117,12 @@ class PlurkNotify:
                                                'offset':  self.offset,
                                                'limit' :  20}))
         return json.load(plurks)
+
+    def get_unread_count(self):
+        unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
+                                  self.encode({'api_key': self.api_key}))
+        print 'get unread'
+        self.unReadCount = json.load(unread)['all']
 
     def set_offset(self):
         self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
@@ -153,9 +170,10 @@ class PlurkNotify:
             pynotify.Notification(self.notify_header(p),
                                   str(p['content']),
                                   self.friend_pic[str(p['owner_id'])]).show()
-
+            
     def run(self):
         self.login()
+        self.get_unread_count()
         plurks = self.get_recent_plurks()
         self.parse_plurk_data(plurks)
         self.notify_plurks(plurks)
