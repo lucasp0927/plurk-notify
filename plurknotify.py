@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 #--- Setup ----------------------------------------------
+import pygtk
+pygtk.require('2.0')
+import gtk, glib
 import urllib, urllib2, cookielib
 import pynotify
 from datetime import datetime
@@ -7,6 +10,63 @@ import json, os, time
 
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 username_and_password = 'password.dat'
+
+class PlurkTray:
+
+    def __init__(self):
+        self.statusIcon = gtk.StatusIcon()
+        self.statusIcon.set_from_stock(gtk.STOCK_ABOUT)
+        self.statusIcon.set_visible(True)
+        self.statusIcon.set_tooltip("Plurk Notify")
+        self.statusIcon.connect("activate",self.run_cb)
+        self.menu = gtk.Menu()
+        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
+        self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
+        self.menu.append(self.menuItem)
+        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
+        self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
+        self.menu.append(self.menuItem)
+
+        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
+        self.statusIcon.set_visible(1)
+
+        gtk.main()
+
+    def run_cb(self, data = None):
+        glib.timeout_add(10000, self.notify)
+
+    def execute_cb(self, widget, event, data = None):
+        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        window.set_border_width(10)
+
+        button = gtk.Button("Hello World")
+        button.connect_object("clicked", gtk.Widget.destroy, window)
+        
+        window.add(button)
+        button.show()
+        window.show()
+
+    def quit_cb(self, widget, data = None):
+        gtk.main_quit()
+
+    def popup_menu_cb(self, widget, button, time, data = None):
+        if button == 3:
+            if data:
+                data.show_all()
+                #left click
+#                data.popup(None, None, gtk.status_icon_position_menu,
+#                           3, time, self.statusIcon)
+                # right click
+                data.popup(None, None, gtk.status_icon_position_menu,
+                           1, gtk.get_current_event_time(), self.statusIcon)
+                
+    def notify(self):
+        print 'start notifying'
+        p = PlurkNotify()
+        p.set_offset()
+        p.run()
+#        while True:
+#            p.run()
 
 class PlurkNotify:
     def __init__(self):
@@ -53,13 +113,13 @@ class PlurkNotify:
     def get_avatar(self, uid, plurk_user):
         if plurk_user['has_profile_image'] == 1:
             if plurk_user['avatar'] == None:
-#                return 'http://avatars.plurk.com/%s-small.gif' % uid
+                #                return 'http://avatars.plurk.com/%s-small.gif' % uid
                 return self.download_avatar('http://avatars.plurk.com/%s-small.gif' % uid, uid, 'none')
             else:
-#                return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
+                #                return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
                 return self.download_avatar('http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
         else:
-#            return 'http://www.plurk.com/static/default_small.gif'
+            #            return 'http://www.plurk.com/static/default_small.gif'
             return self.download_avatar('http://www.plurk.com/static/default_small.gif', 'default', 'small')
 
     def get_name(self, plurk_user):
@@ -95,11 +155,9 @@ class PlurkNotify:
         self.parse_plurk_data(plurks)
         self.notify_plurks(plurks)
         self.set_offset()
-        time.sleep(120)
+#        time.sleep(120)
 
 if __name__ == "__main__":
-    p = PlurkNotify()
-    p.set_offset()
-    while True:
-        p.run()
+    tray = PlurkTray()
+#    tray.notify()
 
