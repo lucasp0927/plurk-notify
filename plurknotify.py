@@ -43,7 +43,9 @@ class PlurkNotify:
         self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
     def download_avatar(self,url,uid, avatar_version):
-        fileurl = os.path.abspath(os.path.curdir)+'/'+str(uid)+'-'+str(avatar_version)+'.gif'
+        if not(os.path.exists(os.path.abspath(os.path.curdir)+'/avatar')):
+            os.mkdir(os.path.abspath(os.path.curdir)+'/avatar')
+        fileurl = os.path.abspath(os.path.curdir)+'/avatar/'+str(uid)+'-'+str(avatar_version)+'.gif'
         if not(os.path.isfile(fileurl)):
             urllib.urlretrieve(url, fileurl )
         return fileurl
