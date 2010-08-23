@@ -27,13 +27,13 @@ class PlurkTray:
         gtk.main()
     
     def make_menu(self):
-        print "make menu"
         self.menu = gtk.Menu()
 #        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
+        self.menuItem = gtk.MenuItem(label='Unread Plurk: '+str(self.p.unReadCount),use_underline=False)
+        self.menu.append(self.menuItem)
+        self.menu.add(gtk.SeparatorMenuItem())
         self.menuItem = gtk.MenuItem(label=self.notify_state(),use_underline=True)
         self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
-        self.menu.append(self.menuItem)
-        self.menuItem = gtk.MenuItem(label='Unread Plurk: '+str(self.p.unReadCount),use_underline=False)
         self.menu.append(self.menuItem)
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
@@ -73,7 +73,6 @@ class PlurkTray:
 
 
     def notify(self):
-        print 'start notifying'
         if self.first == 0:
             self.first = 1
             self.p.set_offset()
@@ -93,7 +92,6 @@ class PlurkTray:
 
 class PlurkNotify:
     def __init__(self):
-        print 'initialize plurk'
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
@@ -127,7 +125,6 @@ class PlurkNotify:
     def get_unread_count(self):
         unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
                                   self.encode({'api_key': self.api_key}))
-        print 'get unread'
         self.unReadCount = json.load(unread)['all']
 
     def set_offset(self):
