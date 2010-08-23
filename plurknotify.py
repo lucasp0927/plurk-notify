@@ -15,38 +15,40 @@ class PlurkTray:
 
     def __init__(self):
         self.first = 0
+        self.notify_on = True
         self.p = PlurkNotify()
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_from_stock(gtk.STOCK_ABOUT)
         self.statusIcon.set_visible(True)
         self.statusIcon.set_tooltip("Plurk Notify")
-#        self.statusIcon.connect("activate",self.run_cb)
+        self.make_menu()
+        self.statusIcon.set_visible(1)
+        self.run_cb()
+        gtk.main()
+    
+    def make_menu(self):
         self.menu = gtk.Menu()
-        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
+#        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
+        self.menuItem = gtk.MenuItem(label=self.notify_state(),use_underline=True)
         self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
         self.menu.append(self.menuItem)
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
         self.menu.append(self.menuItem)
-
         self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
-        self.statusIcon.set_visible(1)
-        self.run_cb()
-        gtk.main()
+        
+    def notify_state(self):
+        if self.notify_on == True:
+            return "Plurk Notify is on"
+        else:
+            return "Plurk Notify is off"
 
     def run_cb(self, data = None):
         self.notify()
 
     def execute_cb(self, widget, event, data = None):
-        window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        window.set_border_width(10)
-
-        button = gtk.Button("Hello World")
-        button.connect_object("clicked", gtk.Widget.destroy, window)
-        
-        window.add(button)
-        button.show()
-        window.show()
+        self.notify_on = not self.notify_on
+        self.make_menu()
 
     def quit_cb(self, widget, data = None):
         gtk.main_quit()
@@ -65,7 +67,8 @@ class PlurkTray:
     def notify(self):
         print 'start notifying'
         if self.first == 1:
-            self.p.run()
+            if notify_on == True:
+                self.p.run()
         else:
             self.first = 1
         glib.timeout_add_seconds(120, self.notify)
