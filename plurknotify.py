@@ -11,7 +11,7 @@ opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
 encode = urllib.urlencode
-fileurl = "file://" + os.path.abspath(os.path.curdir)+"/temp.png"
+fileurl = "file://" + os.path.abspath(os.path.curdir)+"/temp.gif"
 file_line = open("password.dat","r").readlines()
 username = file_line[0].strip()
 password = file_line[1].strip()
@@ -68,7 +68,7 @@ while(True):
     print friends
 
     for p in plurks['plurks']:
-#        urllib.urlretrieve(friends[str(p['owner_id'])]['url'], fileurl)
+        urllib.urlretrieve(friends[str(p['owner_id'])]['url'], fileurl)
         if 'qualifier_translated' in p:
             n = pynotify.Notification (friends[str(p['owner_id'])]['name'] + ' ' + p['qualifier_translated'],str(p['content']),fileurl)
         else:
