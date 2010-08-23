@@ -14,11 +14,13 @@ username_and_password = 'password.dat'
 class PlurkTray:
 
     def __init__(self):
+        self.first = 0
+        self.p = PlurkNotify()
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_from_stock(gtk.STOCK_ABOUT)
         self.statusIcon.set_visible(True)
         self.statusIcon.set_tooltip("Plurk Notify")
-        self.statusIcon.connect("activate",self.run_cb)
+#        self.statusIcon.connect("activate",self.run_cb)
         self.menu = gtk.Menu()
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
         self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
@@ -29,11 +31,11 @@ class PlurkTray:
 
         self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
         self.statusIcon.set_visible(1)
-
+        self.run_cb()
         gtk.main()
 
     def run_cb(self, data = None):
-        glib.timeout_add(10000, self.notify)
+        self.notify()
 
     def execute_cb(self, widget, event, data = None):
         window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -53,18 +55,21 @@ class PlurkTray:
         if button == 3:
             if data:
                 data.show_all()
-                #left click
-#                data.popup(None, None, gtk.status_icon_position_menu,
-#                           3, time, self.statusIcon)
-                # right click
+                #right click
                 data.popup(None, None, gtk.status_icon_position_menu,
-                           1, gtk.get_current_event_time(), self.statusIcon)
+                           3, time, self.statusIcon)
+                # left click
+#                data.popup(None, None, gtk.status_icon_position_menu,
+#                           1, gtk.get_current_event_time(), self.statusIcon)
                 
     def notify(self):
         print 'start notifying'
-        p = PlurkNotify()
-        p.set_offset()
-        p.run()
+        if self.first == 1:
+            self.p.run()
+        else:
+            self.first = 1
+        glib.timeout_add_seconds(120, self.notify)
+        self.p.set_offset()
 #        while True:
 #            p.run()
 
