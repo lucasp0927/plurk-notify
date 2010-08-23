@@ -27,16 +27,16 @@ class PlurkNotify:
 
     def login(self):
         self.opener.open(self.get_api_url('/Users/login'),
-                         encode({'username': self.username,
+                         self.encode({'username': self.username,
                                  'password': self.password,
                                  'api_key':  self.api_key,
                                  'no_data':  '1'}))
 
     def get_recent_plurks(self):
         plurks = self.opener.open(self.get_api_url('/Polling/getPlurks'),
-                           encode({'api_key': self.api_key,
+                           self.encode({'api_key': self.api_key,
                                    'offset':  self.offset,
-                                   'limit' :  20})))
+                                   'limit' :  20}))
         return json.load(plurks)
 
     def set_offset(self):
@@ -45,9 +45,9 @@ class PlurkNotify:
     def get_avater(self, uid, plurk_user):
         if plurk_user['has_profile_image'] == 1:
             if plurk_user['avatar'] == None:
-                return 'http://avatars.plurk.com/%d-small.gif' % uid
+                return 'http://avatars.plurk.com/%s-small.gif' % uid
             else:
-                return 'http://avatars.plurk.com/%d-small%s.gif' % (uid, plurk_user['avatar'])
+                return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
         else:
             return 'http://www.plurk.com/static/default_small.gif'
 
@@ -74,7 +74,7 @@ class PlurkNotify:
 
     def notify_plurks(self, plurk_data):
         for p in plurk_data['plurks']:
-            pynotify.Notification(notify_header(p),
+            pynotify.Notification(self.notify_header(p),
                                   str(p['content']),
                                   self.friend_pic[str(p['owner_id'])]).show()
 
