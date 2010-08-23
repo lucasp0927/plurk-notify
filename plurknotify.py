@@ -93,7 +93,7 @@ class PlurkNotify:
         self.parse_plurk_data(plurks)
         self.notify_plurks(plurks)
         self.set_offset()
-        time.sleep(60)
+        time.sleep(120)
 
 if __name__ == "__main__":
     p = PlurkNotify()
