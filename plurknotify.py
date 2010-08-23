@@ -1,79 +1,92 @@
 #! /usr/bin/env python
 #--- Setup ----------------------------------------------
 import urllib, urllib2, cookielib
-import time
 import pynotify
 from datetime import datetime
-import json
-import os
+import json, os, time
 
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
-get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
-encode = urllib.urlencode
-fileurl = "file://" + os.path.abspath(os.path.curdir)+"/temp.png"
-file_line = open("password.dat","r").readlines()
-username = file_line[0].strip()
-password = file_line[1].strip()
+username_and_password = 'password.dat'
 
-pynotify.init("plurk")
+class PlurkNotify:
+    def __init__(self):
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+        self.api_key = api_key
+        self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
+        self.encode = urllib.urlencode
+        self.offset = None
+        self.friend_name = {}
+        self.friend_pic = {}
+        pynotify.init("plurk")
+        self.load_login_data()
 
-offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
-print username
-print password
-print 'offset =',
-print offset
-while(True):
+    def load_login_data(self):
+        file_line = open(username_and_password,"r").readlines()
+        self.username = file_line[0].strip()
+        self.password = file_line[1].strip()
 
-    login_data_json = opener.open('https://www.plurk.com/API/Users/login',
-                           encode({'username': username,
-                                   'password': password,
-                                   'api_key': api_key,
-                                   'no_data': '1'}))
-    #print json.load(login_data)
-    #login_data = json.load(login_data_json)
-    recent_plurks = opener.open(get_api_url('/Polling/getPlurks'),
-                         encode({'api_key': api_key,
-                                 'offset': offset,
-                                 'limit' : 20}))
+    def login(self):
+        self.opener.open(self.get_api_url('/Users/login'),
+                         encode({'username': self.username,
+                                 'password': self.password,
+                                 'api_key':  self.api_key,
+                                 'no_data':  '1'}))
 
-    offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
-    print 'offset =',
-    print offset
+    def get_recent_plurks(self):
+        plurks = self.opener.open(self.get_api_url('/Polling/getPlurks'),
+                           encode({'api_key': self.api_key,
+                                   'offset':  self.offset,
+                                   'limit' :  20})))
+        return json.load(plurks)
 
-    plurks = json.load(recent_plurks)
-    print plurks
-    print len(plurks['plurks'])
+    def set_offset(self):
+        self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
-    friends = {}
-    for uid in plurks['plurk_users']:
-        if 'display_name' in plurks['plurk_users'][uid]:
-            friends[uid] = {}
-            friends[uid]['name'] = plurks['plurk_users'][uid]['display_name']
-            if plurks['plurk_users'][uid]['has_profile_image'] == 1 and plurks['plurk_users'][uid]['avatar'] == None:
-                friends[uid]['url'] = 'http://avatars.plurk.com/'+str(uid)+'-small.gif'
-            elif plurks['plurk_users'][uid]['has_profile_image'] == 1 and plurks['plurk_users'][uid]['avatar'] != None:
-                friends[uid]['url'] = 'http://avatars.plurk.com/'+str(uid)+'-small'+str(plurks['plurk_users'][uid]['avatar'])+'.gif'
+    def get_avater(self, uid, plurk_user):
+        if plurk_user['has_profile_image'] == 1:
+            if plurk_user['avatar'] == None:
+                return 'http://avatars.plurk.com/%d-small.gif' % uid
             else:
-                friends[uid]['url'] = 'http://www.plurk.com/static/default_small.gif'
+                return 'http://avatars.plurk.com/%d-small%s.gif' % plurk_user['avatar']
         else:
-            friends[uid] = {}
-            friends[uid]['name'] = plurks['plurk_users'][uid]['nick_name']
-            if plurks['plurk_users'][uid]['has_profile_image'] == 1 and plurks['plurk_users'][uid]['avatar'] == None:
-                friends[uid]['url'] = 'http://avatars.plurk.com/'+str(uid)+'-small.gif'
-            elif plurks['plurk_users'][uid]['has_profile_image'] == 1 and plurks['plurk_users'][uid]['avatar'] != None:
-                friends[uid]['url'] = 'http://avatars.plurk.com/'+str(uid)+'-small'+str(plurks['plurk_users'][uid]['avatar'])+'.gif'
-            else:
-                friends[uid]['url'] = 'http://www.plurk.com/static/default_small.gif'
-    print friends
+            return 'http://www.plurk.com/static/default_small.gif'
 
-    for p in plurks['plurks']:
-#        urllib.urlretrieve(friends[str(p['owner_id'])]['url'], fileurl)
-        if 'qualifier_translated' in p:
-            n = pynotify.Notification (friends[str(p['owner_id'])]['name'] + ' ' + p['qualifier_translated'],str(p['content']),fileurl)
+    def get_name(self, plurk_user):
+        if 'display_name' in plurk_user:
+            return plurk_user['display_name']
         else:
-            n = pynotify.Notification (friends[str(p['owner_id'])]['name'] + ' ' + p['qualifier'],str(p['content']),fileurl)
-        n.show()
-    print 'finish a cycle'
-    time.sleep(60)
+            return plurk_user['nick_name']
+
+    def get_qualifier(self, plurk):
+        if 'qualifier_translated' in plurk:
+            return plurk['qualifier_translated']
+        else:
+            return plurk['qualifier']
+
+    def parse_plurk_data(self, plurk_data):
+        for uid in plurk_data['plurk_users']:
+            self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
+            self.friend_pic[uid] = self.get_avater(plurk_data['plurk_users'][uid])
+
+    def notify_header(self, plurk):
+        return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
+                          self.get_qualifier(plurk))
+
+    def notify_plurks(self, plurk_data):
+        for p in plurk_data['plurks']:
+            pynotify.Notification(notify_header(p),
+                                  str(p['content']),
+                                  self.friend_pic[str(p['owner_id'])]).show()
+
+    def run(self):
+        self.login()
+        plurks = self.get_recent_plurks()
+        self.parse_plurk_data(plurks)
+        self.notify_plurks(plurks)
+        self.set_offset()
+        time.sleep(60)
+
+if __name__ == "__main__":
+    p = PlurkNotify()
+    p.run()
 
