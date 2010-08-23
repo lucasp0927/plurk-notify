@@ -8,7 +8,6 @@ import json, os, time
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 username_and_password = 'password.dat'
 
-
 class PlurkNotify:
     def __init__(self):
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
@@ -48,7 +47,7 @@ class PlurkNotify:
             if plurk_user['avatar'] == None:
                 return 'http://avatars.plurk.com/%d-small.gif' % uid
             else:
-                return 'http://avatars.plurk.com/%d-small%s.gif' % plurk_user['avatar']
+                return 'http://avatars.plurk.com/%d-small%s.gif' % (uid, plurk_user['avatar'])
         else:
             return 'http://www.plurk.com/static/default_small.gif'
 
@@ -61,7 +60,6 @@ class PlurkNotify:
     def get_qualifier(self, plurk):
         if 'qualifier_translated' in plurk:
             return plurk['qualifier_translated']
-
         else:
             return plurk['qualifier']
 
