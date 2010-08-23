@@ -18,7 +18,7 @@ class PlurkTray:
         self.notify_on = True
         self.p = PlurkNotify()
         self.statusIcon = gtk.StatusIcon()
-        self.statusIcon.set_from_stock(gtk.STOCK_ABOUT)
+        self.statusIcon.set_from_file(os.path.abspath(os.path.curdir)+"/plurk_mono48.png")
         self.statusIcon.set_visible(True)
         self.make_menu()
         self.statusIcon.set_visible(1)
