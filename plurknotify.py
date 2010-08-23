@@ -8,6 +8,7 @@ import json, os, time
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 username_and_password = 'password.dat'
 
+
 class PlurkNotify:
     def __init__(self):
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
@@ -60,6 +61,7 @@ class PlurkNotify:
     def get_qualifier(self, plurk):
         if 'qualifier_translated' in plurk:
             return plurk['qualifier_translated']
+
         else:
             return plurk['qualifier']
 
