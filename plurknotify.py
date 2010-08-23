@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 #--- Setup ----------------------------------------------
 import pygtk
+import webbrowser
 pygtk.require('2.0')
 import gtk, glib
 import urllib, urllib2, cookielib
@@ -41,11 +42,16 @@ class PlurkTray:
         self.menu.show_all()
 #        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
         self.statusIcon.connect('popup-menu', self.on_popup_menu)
+        self.statusIcon.connect('activate', self.open_browser)
+
     def notify_state(self):
         if self.notify_on == True:
             return "Plurk Notify is on"
         else:
             return "Plurk Notify is off"
+        
+    def open_browser(self, data = None):
+        webbrowser.open("http://www.plurk.com")
 
     def run_cb(self, data = None):
         self.notify()
