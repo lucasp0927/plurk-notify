@@ -50,7 +50,8 @@ class PlurkTray:
         else:
             return "Plurk Notify is off"
         
-    def open_browser(self, data = None):
+    def open_browser(self, widget,data = None):
+        print 'open browser'
         webbrowser.open("http://www.plurk.com")
 
     def run_cb(self, data = None):
