@@ -42,17 +42,23 @@ class PlurkNotify:
     def set_offset(self):
         self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
+    def download_avatar(self,url,uid, avatar_version):
+        fileurl = os.path.abspath(os.path.curdir)+'/'+str(uid)+'-'+str(avatar_version)+'.gif'
+        if not(os.path.isfile(fileurl)):
+            urllib.urlretrieve(url, fileurl )
+        return fileurl
+
     def get_avatar(self, uid, plurk_user):
         if plurk_user['has_profile_image'] == 1:
             if plurk_user['avatar'] == None:
-                return 'http://avatars.plurk.com/%s-small.gif' % uid
+#                return 'http://avatars.plurk.com/%s-small.gif' % uid
+                return self.download_avatar('http://avatars.plurk.com/%s-small.gif' % uid, uid, 'none')
             else:
-                return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
+#                return 'http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar'])
+                return self.download_avatar('http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
         else:
-            return 'http://www.plurk.com/static/default_small.gif'
-        
-    def download_avatar(self,url):
-        urllib.urlretrieve(url, os.path.abspath(os.path.curdir)+"/temp.gif" )
+#            return 'http://www.plurk.com/static/default_small.gif'
+            return self.download_avatar('http://www.plurk.com/static/default_small.gif', 'default', 'small')
 
     def get_name(self, plurk_user):
         if 'display_name' in plurk_user:
@@ -77,10 +83,9 @@ class PlurkNotify:
 
     def notify_plurks(self, plurk_data):
         for p in plurk_data['plurks']:
-            self.download_avatar(self.friend_pic[str(p['owner_id'])])
             pynotify.Notification(self.notify_header(p),
                                   str(p['content']),
-                                  os.path.abspath(os.path.curdir)+"/temp.gif").show()
+                                  self.friend_pic[str(p['owner_id'])]).show()
 
     def run(self):
         self.login()
