@@ -22,6 +22,7 @@ class PlurkTray:
         self.statusIcon.set_visible(True)
         self.make_menu()
         self.statusIcon.set_visible(1)
+
         self.run_cb()
         gtk.main()
     
@@ -37,8 +38,9 @@ class PlurkTray:
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
         self.menu.append(self.menuItem)
-        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
-        
+        self.menu.show_all()
+#        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
+        self.statusIcon.connect('popup-menu', self.on_popup_menu)
     def notify_state(self):
         if self.notify_on == True:
             return "Plurk Notify is on"
@@ -55,17 +57,21 @@ class PlurkTray:
     def quit_cb(self, widget, data = None):
         gtk.main_quit()
 
-    def popup_menu_cb(self, widget, button, time, data = None):
-        if button == 3:
-            if data:
-                data.show_all()
-                #right click
-                data.popup(None, None, gtk.status_icon_position_menu,
-                           3, time, self.statusIcon)
-                # left click
+#    def popup_menu_cb(self, widget, button, time, data = None):
+#        if button == 3:
+#            if data:
+#                data.show_all()
+#                #right click
+#                data.popup(None, None, gtk.status_icon_position_menu,
+#                           3, time, self.statusIcon)
+#                # left click
 #                data.popup(None, None, gtk.status_icon_position_menu,
 #                           1, gtk.get_current_event_time(), self.statusIcon)
                 
+    def on_popup_menu(self, status, button, time):
+        self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.statusIcon)
+
+
     def notify(self):
         print 'start notifying'
         if self.first == 0:
