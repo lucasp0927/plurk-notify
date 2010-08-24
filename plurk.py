@@ -1,13 +1,14 @@
 import urllib, urllib2, cookielib
 from datetime import datetime
 import pynotify
-import json, os, time
+import json, os, time, sys
 
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 username_and_password = 'password.dat'
 
 class Plurk:
     def __init__(self):
+        self.currentpath=self.get_current_path()
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
@@ -19,8 +20,13 @@ class Plurk:
         pynotify.init("plurk")
         self.load_login_data()
 
+    def get_current_path(self):
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+'/'
+        return pathname
+
     def load_login_data(self):
-        file_line = open(username_and_password,"r").readlines()
+        print self.currentpath+username_and_password
+        file_line = open(self.currentpath+username_and_password,"r").readlines()
         self.username = file_line[0].strip()
         self.password = file_line[1].strip()
 
@@ -59,9 +65,9 @@ class Plurk:
         self.offset = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
     def download_avatar(self,url,uid, avatar_version):
-        if not(os.path.exists(os.path.abspath(os.path.curdir)+'/avatar')):
-            os.mkdir(os.path.abspath(os.path.curdir)+'/avatar')
-        fileurl = os.path.abspath(os.path.curdir)+'/avatar/'+str(uid)+'-'+str(avatar_version)+'.gif'
+        if not(os.path.exists(self.currentpath+'avatar')):
+            os.mkdir(self.currentpath+'avatar')
+        fileurl = self.currentpath+'avatar/'+str(uid)+'-'+str(avatar_version)+'.gif'
         if not(os.path.isfile(fileurl)):
             urllib.urlretrieve(url, fileurl )
         return fileurl

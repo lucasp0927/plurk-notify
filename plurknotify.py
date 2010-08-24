@@ -3,7 +3,7 @@
 import pygtk, gtk, glib
 pygtk.require('2.0')
 import webbrowser
-import os
+import os, sys
 from plurk import Plurk
 
 
@@ -14,7 +14,7 @@ class PlurkTray:
         self.notify_on = True
         self.p = Plurk()
         self.statusIcon = gtk.StatusIcon()
-        self.statusIcon.set_from_file(os.path.abspath(os.path.curdir)+"/plurk_mono48.png")
+        self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_mono48.png")
         self.statusIcon.set_visible(True)
 #        self.statusIcon.connect('activate', self.open_browser)
         self.make_menu()
