@@ -21,10 +21,11 @@ class PlurkTray:
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_from_file(os.path.abspath(os.path.curdir)+"/plurk_mono48.png")
         self.statusIcon.set_visible(True)
+#        self.statusIcon.connect('activate', self.open_browser)
         self.make_menu()
-        self.statusIcon.set_visible(1)
-
-        self.run_cb()
+        self.make_lmenu()
+        #self.statusIcon.set_visible(1)
+        self.notify()
         gtk.main()
     
     def make_menu(self):
@@ -42,20 +43,19 @@ class PlurkTray:
         self.menu.show_all()
 #        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
         self.statusIcon.connect('popup-menu', self.on_popup_menu)
-        self.statusIcon.connect('activate', self.open_browser)
 
-    def notify_state(self):
-        if self.notify_on == True:
-            return "Plurk Notify is on"
-        else:
-            return "Plurk Notify is off"
-        
-    def open_browser(self, widget,data = None):
-        print 'open browser'
-        webbrowser.open("http://www.plurk.com")
+    def make_lmenu(self):
+        self.lmenu = gtk.Menu()
+#        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
+        self.menuItem = gtk.MenuItem(label='Open Plurk in browser',use_underline=False)
+        self.menuItem.connect('activate', self.open_browser)
+        self.lmenu.append(self.menuItem)
+        self.lmenu.show_all()
+#        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
+        self.statusIcon.connect('activate', self.on_lmenu)
 
-    def run_cb(self, data = None):
-        self.notify()
+#    def run_cb(self, data = None):
+#        self.notify()
 
     def execute_cb(self, widget, event, data = None):
         self.notify_on = not self.notify_on
@@ -64,20 +64,11 @@ class PlurkTray:
     def quit_cb(self, widget, data = None):
         gtk.main_quit()
 
-#    def popup_menu_cb(self, widget, button, time, data = None):
-#        if button == 3:
-#            if data:
-#                data.show_all()
-#                #right click
-#                data.popup(None, None, gtk.status_icon_position_menu,
-#                           3, time, self.statusIcon)
-#                # left click
-#                data.popup(None, None, gtk.status_icon_position_menu,
-#                           1, gtk.get_current_event_time(), self.statusIcon)
-                
     def on_popup_menu(self, status, button, time):
         self.menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.statusIcon)
 
+    def on_lmenu(self, *args):
+        self.lmenu.popup(None, None, gtk.status_icon_position_menu, 1 , gtk.get_current_event_time(), self.statusIcon)
 
     def notify(self):
         if self.first == 0:
@@ -94,8 +85,16 @@ class PlurkTray:
 
         glib.timeout_add_seconds(120, self.notify)
         self.p.set_offset()
-#        while True:
-#            p.run()
+
+    def notify_state(self):
+        if self.notify_on == True:
+            return "Plurk Notify is on"
+        else:
+            return "Plurk Notify is off"
+        
+    def open_browser(self,event):
+        webbrowser.open("http://www.plurk.com")
+
 
 class PlurkNotify:
     def __init__(self):
@@ -128,6 +127,18 @@ class PlurkNotify:
                                                'offset':  self.offset,
                                                'limit' :  20}))
         return json.load(plurks)
+
+    def get_unread_plurks(self):
+        unreadplurks = self.opener.open(self.get_api_url('/Timeline/getUnreadPlurks'),
+                                  self.encode({'api_key': self.api_key,
+                                               'offset':  datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+                                               }))
+        return json.load(unreadplurks)
+
+    def mark_all_as_read(self):
+        plurks = self.get_unread_plurks()
+        for plurk_id in plurks['plurks']:
+            print 'not yet'
 
     def get_unread_count(self):
         unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
