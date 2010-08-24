@@ -2,4 +2,4 @@ password.dat
 *~
 *.gif
 ./avatar
-*.ptc
+*.pyc
