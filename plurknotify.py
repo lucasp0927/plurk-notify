@@ -2,15 +2,10 @@
 #--- Setup ----------------------------------------------
 import pygtk, gtk, glib
 pygtk.require('2.0')
-import pynotify
 import webbrowser
-import urllib, urllib2, cookielib
-from datetime import datetime
-import json, os, time
+import os
 from plurk import Plurk
 
-api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
-username_and_password = 'password.dat'
 
 class PlurkTray:
 
