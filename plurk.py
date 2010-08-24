@@ -69,11 +69,11 @@ class Plurk:
     def get_avatar(self, uid, plurk_user):
         if plurk_user['has_profile_image'] == 1:
             if plurk_user['avatar'] == 0: #0 or None?
-                return self.download_avatar('http://avatars.plurk.com/%s-small.gif' % uid, uid, 'none')
+                return self.download_avatar('http://avatars.plurk.com/%s-medium.gif' % uid, uid, 'none')
             else:
-                return self.download_avatar('http://avatars.plurk.com/%s-small%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
+                return self.download_avatar('http://avatars.plurk.com/%s-medium%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
         else:
-            return self.download_avatar('http://www.plurk.com/static/default_small.gif', 'default', 'small')
+            return self.download_avatar('http://www.plurk.com/static/default_medium.gif', 'default', 'medium')
 
     def get_name(self, plurk_user):
         if 'display_name' in plurk_user:
