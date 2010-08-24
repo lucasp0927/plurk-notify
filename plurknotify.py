@@ -14,23 +14,29 @@ class PlurkTray:
         self.notify_on = True
         self.p = Plurk()
         self.statusIcon = gtk.StatusIcon()
-        self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_mono48.png")
         self.statusIcon.set_visible(True)
+        self.set_icon()
 #        self.statusIcon.connect('activate', self.open_browser)
         self.make_menu()
         self.make_lmenu()
         #self.statusIcon.set_visible(1)
         self.notify()
         gtk.main()
-    
+
+    def set_icon (self):
+        if self.p.unReadCount == 0:
+            self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_mono48.png")
+        else:
+            self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_red48.png")
+
     def make_menu(self):
         self.menu = gtk.Menu()
-#        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
         self.menuItem = gtk.MenuItem(label='Unread Plurk: '+str(self.p.unReadCount),use_underline=False)
+        self.statusIcon.set_tooltip("unread plurk: "+str(self.p.unReadCount))
         self.menu.append(self.menuItem)
         self.menu.add(gtk.SeparatorMenuItem())
         self.menuItem = gtk.MenuItem(label=self.notify_state(),use_underline=True)
-        self.menuItem.connect('activate', self.execute_cb, self.statusIcon)
+        self.menuItem.connect('activate', self.toggle, self.statusIcon)
         self.menu.append(self.menuItem)
         self.menuItem = gtk.ImageMenuItem(gtk.STOCK_QUIT)
         self.menuItem.connect('activate', self.quit_cb, self.statusIcon)
@@ -41,7 +47,6 @@ class PlurkTray:
 
     def make_lmenu(self):
         self.lmenu = gtk.Menu()
-#        self.menuItem = gtk.ImageMenuItem(gtk.STOCK_EXECUTE)
         self.menuItem = gtk.MenuItem(label='Open Plurk in browser',use_underline=False)
         self.menuItem.connect('activate', self.open_browser)
         self.lmenu.append(self.menuItem)
@@ -52,7 +57,7 @@ class PlurkTray:
 #    def run_cb(self, data = None):
 #        self.notify()
 
-    def execute_cb(self, widget, event, data = None):
+    def toggle(self, widget, event, data = None):
         self.notify_on = not self.notify_on
         self.make_menu()
 
@@ -76,8 +81,7 @@ class PlurkTray:
                 self.p.run()
 
         self.make_menu()
-        self.statusIcon.set_tooltip("unread plurk: "+str(self.p.unReadCount))
-
+        self.set_icon()
         glib.timeout_add_seconds(120, self.notify)
         self.p.set_offset()
 
