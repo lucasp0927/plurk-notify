@@ -9,6 +9,7 @@ username_and_password = 'password.dat'
 class Plurk:
     def __init__(self):
         self.currentpath=self.get_current_path()
+        self.login_state = False
         self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
@@ -25,17 +26,23 @@ class Plurk:
         return pathname
 
     def load_login_data(self):
-        print self.currentpath+username_and_password
+#        print self.currentpath+username_and_password
         file_line = open(self.currentpath+username_and_password,"r").readlines()
         self.username = file_line[0].strip()
         self.password = file_line[1].strip()
 
     def login(self):
-        self.opener.open(self.get_api_url('/Users/login'),
-                         self.encode({'username': self.username,
-                                      'password': self.password,
-                                      'api_key':  self.api_key,
-                                      'no_data':  '1'}))
+        result=self.opener.open(self.get_api_url('/Users/login'),
+                                self.encode({'username': self.username,
+                                             'password': self.password,
+                                             'api_key':  self.api_key,
+                                             'no_data':  '1'}))
+
+
+        if json.load(result)['success_text'] == 'ok':
+            return True
+        else:
+            return False
 
     def get_recent_plurks(self):
         plurks = self.opener.open(self.get_api_url('/Polling/getPlurks'),
@@ -109,10 +116,13 @@ class Plurk:
                                   self.friend_pic[str(p['owner_id'])]).show()
             
     def run(self):
-        self.login()
-        self.get_unread_count()
-        plurks = self.get_recent_plurks()
-        self.parse_plurk_data(plurks)
-        self.notify_plurks(plurks)
-        self.set_offset()
+        self.login_state = self.login()
+        if self.login_state == True:
+            self.get_unread_count()
+            plurks = self.get_recent_plurks()
+            self.parse_plurk_data(plurks)
+            self.notify_plurks(plurks)
+            self.set_offset()
+        else:
+            print 'login error'
 #        time.sleep(120)

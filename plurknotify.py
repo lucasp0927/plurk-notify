@@ -5,7 +5,7 @@ pygtk.require('2.0')
 import webbrowser
 import os, sys
 from plurk import Plurk
-
+import urllib2
 
 class PlurkTray:
 
@@ -15,19 +15,21 @@ class PlurkTray:
         self.p = Plurk()
         self.statusIcon = gtk.StatusIcon()
         self.statusIcon.set_visible(True)
-        self.set_icon()
-#        self.statusIcon.connect('activate', self.open_browser)
+        self.set_icon('normal')
         self.make_menu()
         self.make_lmenu()
         #self.statusIcon.set_visible(1)
         self.notify()
         gtk.main()
 
-    def set_icon (self):
-        if self.p.unReadCount == 0:
-            self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_mono48.png")
-        else:
-            self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_red48.png")
+    def set_icon (self, status):
+        if status == 'normal':
+            if self.p.unReadCount == 0:
+                self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_mono48.png")
+            else:
+                self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_red48.png")
+        elif status == 'connect_error':
+            self.statusIcon.set_from_file(os.path.abspath(os.path.dirname(sys.argv[0]))+"/plurk_error48.png")
 
     def make_menu(self):
         self.menu = gtk.Menu()
@@ -71,19 +73,27 @@ class PlurkTray:
         self.lmenu.popup(None, None, gtk.status_icon_position_menu, 1 , gtk.get_current_event_time(), self.statusIcon)
 
     def notify(self):
-        if self.first == 0:
-            self.first = 1
+        try:
+            print 'start'
+            if self.first == 0:
+                self.first = 1
+                self.p.set_offset()
+                if self.notify_on == True:
+                    self.p.run()
+                else:
+                    if self.notify_on == True:
+                        self.p.run()
+            self.make_menu()
+            self.set_icon('normal')
+            glib.timeout_add_seconds(120, self.notify)
             self.p.set_offset()
-            if self.notify_on == True:
-                self.p.run()
-        else:
-            if self.notify_on == True:
-                self.p.run()
 
-        self.make_menu()
-        self.set_icon()
-        glib.timeout_add_seconds(120, self.notify)
-        self.p.set_offset()
+        except urllib2.URLError:
+            print 'connection error'
+            self.statusIcon.set_tooltip("connection error!")
+            self.set_icon('connect_error')
+            glib.timeout_add_seconds(10, self.notify)
+
 
     def notify_state(self):
         if self.notify_on == True:
@@ -95,6 +105,6 @@ class PlurkTray:
         webbrowser.open("http://www.plurk.com")
 
 if __name__ == "__main__":
-    tray = PlurkTray()
-#    tray.notify()
+        tray = PlurkTray()
+
 
