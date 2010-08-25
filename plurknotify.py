@@ -75,6 +75,7 @@ class PlurkTray:
     def notify(self):
         try:
             if self.first == 0:
+                print 'fisst time'
                 self.first = 1
                 self.p.set_offset()
                 if self.notify_on == True:
@@ -92,7 +93,8 @@ class PlurkTray:
             self.statusIcon.set_tooltip("connection error!")
             self.set_icon('connect_error')
             glib.timeout_add_seconds(10, self.notify)
-
+#            self.p.buildopener()
+            self.p.set_offset()
 
     def notify_state(self):
         if self.notify_on == True:

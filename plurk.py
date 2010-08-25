@@ -10,7 +10,7 @@ class Plurk:
     def __init__(self):
         self.currentpath=self.get_current_path()
         self.login_state = False
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+        self.buildopener()
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
         self.encode = urllib.urlencode
@@ -20,6 +20,9 @@ class Plurk:
         self.friend_pic = {}
         pynotify.init("plurk")
         self.load_login_data()
+
+    def buildopener(self):
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 
     def get_current_path(self):
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+'/'
@@ -37,6 +40,11 @@ class Plurk:
                                              'password': self.password,
                                              'api_key':  self.api_key,
                                              'no_data':  '1'}))
+#        result=urllib2.build_opener(urllib2.HTTPCookieProcessor).open(self.get_api_url('/Users/login'),
+#                                                              self.encode({'username': self.username,
+#                                                                           'password': self.password,
+#                                                                           'api_key':  self.api_key,
+#                                                                           'no_data':  '1'}))
 
 
         if json.load(result)['success_text'] == 'ok':
