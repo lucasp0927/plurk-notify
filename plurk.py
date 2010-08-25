@@ -32,7 +32,7 @@ class Plurk:
         self.password = file_line[1].strip()
 
     def login(self):
-        print 'start login'
+        print 'start login...'
         result=self.opener.open(self.get_api_url('/Users/login'),
                                 self.encode({'username': self.username,
                                              'password': self.password,
@@ -119,7 +119,6 @@ class Plurk:
                                   self.friend_pic[str(p['owner_id'])]).show()
             
     def run(self):
-        print 'start runnung'
         self.login_state = self.login()
         if self.login_state == True:
             self.get_unread_count()
