@@ -1,8 +1,8 @@
 Plurk Notify: A Plurk Notification Monitor for GNOME
 Feature:
-1. notify new plurks
-2. display unread plurks count, when hover on the icon and right click.
-3. left click to open plurk.com in your default to
+1. check and notify new plurks using libnotify.
+2. display unread plurks count.
+3. left click to open plurk.com in your default browser.
 
 To install, copy the folder to wherever you like. 
 Execute plurknotify.py to start the program.
