@@ -1,4 +1,5 @@
 Plurk Notify: A Plurk Notification Monitor for GNOME
+
 Feature:
 1. check and notify new plurks using libnotify.
 2. display unread plurks count.
