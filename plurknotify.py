@@ -74,18 +74,18 @@ class PlurkTray:
 
     def notify(self):
         try:
-            print 'start'
+            print 'in notify try'
             if self.first == 0:
                 self.first = 1
                 self.p.set_offset()
                 if self.notify_on == True:
                     self.p.run()
-                else:
-                    if self.notify_on == True:
-                        self.p.run()
+            else:
+                if self.notify_on == True:
+                    self.p.run()
             self.make_menu()
             self.set_icon('normal')
-            glib.timeout_add_seconds(120, self.notify)
+            glib.timeout_add_seconds(10, self.notify)
             self.p.set_offset()
 
         except urllib2.URLError:

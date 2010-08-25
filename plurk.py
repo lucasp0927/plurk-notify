@@ -32,6 +32,7 @@ class Plurk:
         self.password = file_line[1].strip()
 
     def login(self):
+        print 'start login'
         result=self.opener.open(self.get_api_url('/Users/login'),
                                 self.encode({'username': self.username,
                                              'password': self.password,
@@ -40,8 +41,10 @@ class Plurk:
 
 
         if json.load(result)['success_text'] == 'ok':
+            print 'login success'
             return True
         else:
+            print 'login failed'
             return False
 
     def get_recent_plurks(self):
@@ -116,6 +119,7 @@ class Plurk:
                                   self.friend_pic[str(p['owner_id'])]).show()
             
     def run(self):
+        print 'start runnung'
         self.login_state = self.login()
         if self.login_state == True:
             self.get_unread_count()
