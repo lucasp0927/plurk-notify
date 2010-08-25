@@ -85,7 +85,7 @@ class PlurkTray:
                     self.p.run()
             self.make_menu()
             self.set_icon('normal')
-            glib.timeout_add_seconds(10, self.notify)
+            glib.timeout_add_seconds(60, self.notify)
             self.p.set_offset()
 
         except urllib2.URLError:
