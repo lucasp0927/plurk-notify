@@ -74,7 +74,6 @@ class PlurkTray:
 
     def notify(self):
         try:
-            print 'in notify try'
             if self.first == 0:
                 self.first = 1
                 self.p.set_offset()

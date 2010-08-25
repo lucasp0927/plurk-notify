@@ -1,0 +1,9 @@
+Plurk Notify: A Plurk Notification Monitor for GNOME
+Feature:
+1. notify new plurks
+2. display unread plurks count, when hover on the icon and right click.
+3. left click to open plurk.com in your default to
+
+To install, copy the folder to wherever you like. Put it to startup application if you prefer.
+Creat a file called 'password.dat' in the folder where plurknotify.py is locate, with username in the first line, password in the second line.
+
