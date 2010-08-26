@@ -2,6 +2,7 @@ import urllib, urllib2, cookielib
 from datetime import datetime
 import pynotify
 import json, os, time, sys
+from io import StringIO
 
 api_key = 'vB8TYzK9lyDFfHvCjSf0RlF9KBYAUTaL'
 username_and_password = 'password.dat'
@@ -17,7 +18,9 @@ class Plurk:
         self.offset = None
         self.unReadCount = 0
         self.friend_name = {}
+        self.friend_name_unread = {}
         self.friend_pic = {}
+        self.unReadPlurks = json.load(StringIO('{"plurks":[]}'))
         pynotify.init("plurk")
         self.load_login_data()
 
@@ -63,8 +66,7 @@ class Plurk:
 
     def get_unread_plurks(self):
         unreadplurks = self.opener.open(self.get_api_url('/Timeline/getUnreadPlurks'),
-                                  self.encode({'api_key': self.api_key,
-                                               'offset':  datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+                                  self.encode({'api_key': self.api_key
                                                }))
         return json.load(unreadplurks)
 
@@ -110,18 +112,25 @@ class Plurk:
         else:
             return plurk['qualifier']
 
-    def parse_plurk_data(self, plurk_data):
-        for uid in plurk_data['plurk_users']:
-            self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
-            self.friend_pic[uid] = self.get_avatar(uid, plurk_data['plurk_users'][uid])
+    def parse_plurk_data(self, plurk_data, unread):
+        if unread == False:
+            for uid in plurk_data['plurk_users']:
+                self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
+                self.friend_pic[uid] = self.get_avatar(uid, plurk_data['plurk_users'][uid])
+        else:
+            for uid in plurk_data['plurk_users']:
+                self.friend_name_unread[uid] = self.get_name(plurk_data['plurk_users'][uid])
 
-    def notify_header(self, plurk):
-        return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
-                          self.get_qualifier(plurk))
-
+    def notify_header(self, plurk, unread):
+        if unread == False:
+            return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
+                              self.get_qualifier(plurk))
+        else:
+            return "%s %s" % (self.friend_name_unread[str(plurk['owner_id'])],
+                              self.get_qualifier(plurk))
     def notify_plurks(self, plurk_data):
         for p in plurk_data['plurks']:
-            pynotify.Notification(self.notify_header(p),
+            pynotify.Notification(self.notify_header(p,False),
                                   str(p['content']),
                                   self.friend_pic[str(p['owner_id'])]).show()
             
@@ -130,7 +139,9 @@ class Plurk:
         if self.login_state == True:
             self.get_unread_count()
             plurks = self.get_recent_plurks()
-            self.parse_plurk_data(plurks)
+            self.unReadPlurks = self.get_unread_plurks()
+            self.parse_plurk_data(plurks,False)
+            self.parse_plurk_data(self.unReadPlurks,True)
             self.notify_plurks(plurks)
             self.set_offset()
         else:
