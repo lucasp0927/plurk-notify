@@ -54,6 +54,7 @@ class PlurkTray:
 
         for pl in self.p.unReadPlurks['plurks']:
             self.menuItem = gtk.MenuItem(label=self.p.notify_header(pl,True)+str(pl['content']),use_underline=False)
+            self.menuItem.set_submenu(self.create_response_menu(pl['plurk_id']))
             #self.menuItem = gtk.MenuItem(str(pl['content']),use_underline=False)
             self.lmenu.append(self.menuItem)
             self.lmenu.add(gtk.SeparatorMenuItem())
@@ -67,6 +68,18 @@ class PlurkTray:
 
 #    def run_cb(self, data = None):
 #        self.notify()
+
+    def create_response_menu(self, plurkID):
+        #    if depth < 1:
+        #	return None
+        menu = gtk.Menu()
+        group= None
+        for r in self.p.responses[plurkID]['responses']:
+            menuitem = gtk.MenuItem(label=r['content_raw'])
+            menu.append(menuitem)
+        menuitem.show()
+        return menu
+
 
     def toggle(self, widget, event, data = None):
         self.notify_on = not self.notify_on

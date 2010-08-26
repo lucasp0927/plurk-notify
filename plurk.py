@@ -18,6 +18,7 @@ class Plurk:
         self.offset = None
         self.unReadCount = 0
         self.friend_name = {}
+        self.responses = {}
         self.friend_name_unread = {}
         self.friend_pic = {}
         self.unReadPlurks = json.load(StringIO('{"plurks":[]}'))
@@ -121,6 +122,18 @@ class Plurk:
             for uid in plurk_data['plurk_users']:
                 self.friend_name_unread[uid] = self.get_name(plurk_data['plurk_users'][uid])
 
+    def get_responses(self, plurkID):
+        responces = self.opener.open(self.get_api_url('/Responses/get'),
+                                  self.encode({'api_key': self.api_key,
+                                               'plurk_id': plurkID,
+                                               'limit' :  20}))
+        return json.load(responces)
+
+    def load_responses(self, un_read_plurks):
+        self.responses = {}
+        for p in self.unReadPlurks['plurks']:
+            self.responses[p['plurk_id']] = self.get_responses(p['plurk_id'])
+
     def notify_header(self, plurk, unread):
         if unread == False:
             return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
@@ -128,6 +141,7 @@ class Plurk:
         else:
             return "%s %s" % (self.friend_name_unread[str(plurk['owner_id'])],
                               self.get_qualifier(plurk))
+
     def notify_plurks(self, plurk_data):
         for p in plurk_data['plurks']:
             pynotify.Notification(self.notify_header(p,False),
@@ -142,6 +156,7 @@ class Plurk:
             self.unReadPlurks = self.get_unread_plurks()
             self.parse_plurk_data(plurks,False)
             self.parse_plurk_data(self.unReadPlurks,True)
+            self.load_responses(self.unReadPlurks)
             self.notify_plurks(plurks)
             self.set_offset()
         else:
