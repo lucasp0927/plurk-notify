@@ -54,8 +54,8 @@ class PlurkTray:
 
         for pl in self.p.unReadPlurks['plurks']:
             self.menuItem = gtk.MenuItem(label=self.p.notify_header(pl,True)+str(pl['content']),use_underline=False)
-            self.menuItem.set_submenu(self.create_response_menu(pl['plurk_id']))
-            #self.menuItem = gtk.MenuItem(str(pl['content']),use_underline=False)
+#            self.menuItem.set_submenu(self.create_response_menu(pl['plurk_id']))
+            self.menuItem.connect('activate', self.create_response_window,pl['plurk_id'])
             self.lmenu.append(self.menuItem)
             self.lmenu.add(gtk.SeparatorMenuItem())
 
@@ -63,7 +63,6 @@ class PlurkTray:
         self.menuItem.connect('activate', self.open_browser)
         self.lmenu.append(self.menuItem)
         self.lmenu.show_all()
-#        self.statusIcon.connect('popup-menu', self.popup_menu_cb, self.menu)
         self.statusIcon.connect('activate', self.on_lmenu)
 
 #    def run_cb(self, data = None):
@@ -75,10 +74,26 @@ class PlurkTray:
         menu = gtk.Menu()
         group= None
         for r in self.p.responses[plurkID]['responses']:
-            menuitem = gtk.MenuItem(label=r['content_raw'])
+            menuitem = gtk.MenuItem(label=r['content'])
             menu.append(menuitem)
         menuitem.show()
         return menu
+
+    def create_response_window(self,event,plurkID):
+        plurks = self.p.get_responses(plurkID)
+        print plurks
+        window = gtk.Window()
+        window.set_title("responses")
+        window.set_size_request(300, 280)
+        window.set_position(gtk.WIN_POS_CENTER)
+        vbox = gtk.VBox(True, 0)
+        window.add(vbox)
+        for r in plurks['responses']:
+            label = gtk.Label(r['content'])
+            vbox.pack_start(label, True, True, 0)
+            label.show()
+        vbox.show()
+        window.show_all()
 
 
     def toggle(self, widget, event, data = None):
@@ -116,7 +131,6 @@ class PlurkTray:
             self.statusIcon.set_tooltip("connection error!")
             self.set_icon('connect_error')
             glib.timeout_add_seconds(10, self.notify)
-#            self.p.buildopener()
             self.p.set_offset()
 
     def notify_state(self):
