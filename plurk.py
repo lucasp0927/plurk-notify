@@ -109,7 +109,6 @@ class Plurk:
             self.unReadPlurks = self.get_unread_plurks()
             self.parse_plurk_data(plurks,False)
             self.parse_plurk_data(self.unReadPlurks,True)
-#            self.load_responses(self.unReadPlurks)
             self.notify_plurks(plurks)
             self.set_offset()
         else:
