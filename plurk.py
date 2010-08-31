@@ -23,6 +23,7 @@ class Plurk:
         self.unReadPlurks = json.load(StringIO('{"plurks":[]}'))
         pynotify.init("plurk")
         self.load_login_data()
+        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 
     def get_current_path(self):
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+'/'
@@ -59,6 +60,11 @@ class Plurk:
                                   self.encode({'api_key': self.api_key
                                                }))
         return json.load(unreadplurks)
+
+    def mark_all_as_read(self):
+        plurks = self.get_unread_plurks()
+        for plurk_id in plurks['plurks']:
+            print 'not yet'
 
     def get_unread_count(self):
         unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
