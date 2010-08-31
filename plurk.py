@@ -11,7 +11,6 @@ class Plurk:
     def __init__(self):
         self.currentpath=self.get_current_path()
         self.login_state = False
-        self.buildopener()
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
         self.encode = urllib.urlencode
@@ -24,9 +23,6 @@ class Plurk:
         self.unReadPlurks = json.load(StringIO('{"plurks":[]}'))
         pynotify.init("plurk")
         self.load_login_data()
-
-    def buildopener(self):
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 
     def get_current_path(self):
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+'/'
@@ -44,13 +40,6 @@ class Plurk:
                                              'password': self.password,
                                              'api_key':  self.api_key,
                                              'no_data':  '1'}))
-#        result=urllib2.build_opener(urllib2.HTTPCookieProcessor).open(self.get_api_url('/Users/login'),
-#                                                              self.encode({'username': self.username,
-#                                                                           'password': self.password,
-#                                                                           'api_key':  self.api_key,
-#                                                                           'no_data':  '1'}))
-
-
         if json.load(result)['success_text'] == 'ok':
             print 'login success'
             return True
@@ -70,11 +59,6 @@ class Plurk:
                                   self.encode({'api_key': self.api_key
                                                }))
         return json.load(unreadplurks)
-
-    def mark_all_as_read(self):
-        plurks = self.get_unread_plurks()
-        for plurk_id in plurks['plurks']:
-            print 'not yet'
 
     def get_unread_count(self):
         unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
@@ -129,11 +113,6 @@ class Plurk:
                                                'limit' :  20}))
         return json.load(responces)
 
-    def load_responses(self, un_read_plurks):
-        self.responses = {}
-        for p in self.unReadPlurks['plurks']:
-            self.responses[p['plurk_id']] = self.get_responses(p['plurk_id'])
-
     def notify_header(self, plurk, unread):
         if unread == False:
             return "%s %s" % (self.friend_name[str(plurk['owner_id'])],
@@ -156,7 +135,6 @@ class Plurk:
             self.unReadPlurks = self.get_unread_plurks()
             self.parse_plurk_data(plurks,False)
             self.parse_plurk_data(self.unReadPlurks,True)
-#            self.load_responses(self.unReadPlurks)
             self.notify_plurks(plurks)
             self.set_offset()
         else:
