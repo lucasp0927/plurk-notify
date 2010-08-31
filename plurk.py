@@ -9,24 +9,22 @@ username_and_password = 'password.dat'
 
 class Plurk:
     def __init__(self):
+        self.responses = {}
+        self.unReadPlurks = json.load(StringIO('{"plurks":[]}')) #try if {} can work
+
+        self.plurkParse = PlurkParse('plurk_users','plurks')
+        self.unreadParse = PlurkParse('plurk_users','plurks')
+        self.responseParse = PlurkParse('friends','responses')
+
         self.currentpath=self.get_current_path()
         self.login_state = False
-        self.buildopener()
         self.api_key = api_key
         self.get_api_url = lambda x: 'http://www.plurk.com/API%s' % x
         self.encode = urllib.urlencode
         self.offset = None
         self.unReadCount = 0
-        self.friend_name = {}
-        self.responses = {}
-        self.friend_name_unread = {}
-        self.friend_pic = {}
-        self.unReadPlurks = json.load(StringIO('{"plurks":[]}'))
         pynotify.init("plurk")
         self.load_login_data()
-
-    def buildopener(self):
-        self.opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
 
     def get_current_path(self):
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+'/'
@@ -44,13 +42,6 @@ class Plurk:
                                              'password': self.password,
                                              'api_key':  self.api_key,
                                              'no_data':  '1'}))
-#        result=urllib2.build_opener(urllib2.HTTPCookieProcessor).open(self.get_api_url('/Users/login'),
-#                                                              self.encode({'username': self.username,
-#                                                                           'password': self.password,
-#                                                                           'api_key':  self.api_key,
-#                                                                           'no_data':  '1'}))
-
-
         if json.load(result)['success_text'] == 'ok':
             print 'login success'
             return True
@@ -71,10 +62,12 @@ class Plurk:
                                                }))
         return json.load(unreadplurks)
 
-    def mark_all_as_read(self):
-        plurks = self.get_unread_plurks()
-        for plurk_id in plurks['plurks']:
-            print 'not yet'
+    def get_responses(self, plurkID):
+        responses = self.opener.open(self.get_api_url('/Responses/get'),
+                                  self.encode({'api_key': self.api_key,
+                                               'plurk_id': plurkID,
+                                               'limit' :  20}))
+        return json.load(responses)
 
     def get_unread_count(self):
         unread = self.opener.open(self.get_api_url('/Polling/getUnreadCount'),
@@ -92,47 +85,7 @@ class Plurk:
             urllib.urlretrieve(url, fileurl )
         return fileurl
 
-    def get_avatar(self, uid, plurk_user):
-        if plurk_user['has_profile_image'] == 1:
-            if plurk_user['avatar'] == 0: #0 or None?
-                return self.download_avatar('http://avatars.plurk.com/%s-medium.gif' % uid, uid, 'none')
-            else:
-                return self.download_avatar('http://avatars.plurk.com/%s-medium%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
-        else:
-            return self.download_avatar('http://www.plurk.com/static/default_medium.gif', 'default', 'medium')
 
-    def get_name(self, plurk_user):
-        if 'display_name' in plurk_user:
-            return plurk_user['display_name']
-        else:
-            return plurk_user['nick_name']
-
-    def get_qualifier(self, plurk):
-        if 'qualifier_translated' in plurk:
-            return plurk['qualifier_translated']
-        else:
-            return plurk['qualifier']
-
-    def parse_plurk_data(self, plurk_data, unread):
-        if unread == False:
-            for uid in plurk_data['plurk_users']:
-                self.friend_name[uid] = self.get_name(plurk_data['plurk_users'][uid])
-                self.friend_pic[uid] = self.get_avatar(uid, plurk_data['plurk_users'][uid])
-        else:
-            for uid in plurk_data['plurk_users']:
-                self.friend_name_unread[uid] = self.get_name(plurk_data['plurk_users'][uid])
-
-    def get_responses(self, plurkID):
-        responces = self.opener.open(self.get_api_url('/Responses/get'),
-                                  self.encode({'api_key': self.api_key,
-                                               'plurk_id': plurkID,
-                                               'limit' :  20}))
-        return json.load(responces)
-
-    def load_responses(self, un_read_plurks):
-        self.responses = {}
-        for p in self.unReadPlurks['plurks']:
-            self.responses[p['plurk_id']] = self.get_responses(p['plurk_id'])
 
     def notify_header(self, plurk, unread):
         if unread == False:
@@ -161,3 +114,36 @@ class Plurk:
             self.set_offset()
         else:
             print 'login error'
+
+class PlurkParse:
+    def __init__(self,userindex,plurkindex):
+        self.user_index = userindex
+        self.plurk_index = plurkindex
+        self.friend_name = {}
+        self.friend_pic = {}
+
+    def parse_plurk_data(self, plurk_data):
+            for uid in plurk_data[self.user_index]:
+                self.friend_name[uid] = self.get_name(plurk_data[self.user_index][uid])
+                self.friend_pic[uid] = self.get_avatar(uid, plurk_data[self.user_index][uid])
+
+    def get_name(self, plurk_user):
+        if 'display_name' in plurk_user:
+            return plurk_user['display_name']
+        else:
+            return plurk_user['nick_name'] 
+
+    def get_avatar(self, uid, plurk_user):
+        if plurk_user['has_profile_image'] == 1:
+            if plurk_user['avatar'] == 0: #0 or None?
+                return self.download_avatar('http://avatars.plurk.com/%s-medium.gif' % uid, uid, 'none')
+            else:
+                return self.download_avatar('http://avatars.plurk.com/%s-medium%s.gif' % (uid, plurk_user['avatar']), uid, plurk_user['avatar'])
+        else:
+            return self.download_avatar('http://www.plurk.com/static/default_medium.gif', 'default', 'medium')
+
+    def get_qualifier(self, plurk):
+        if 'qualifier_translated' in plurk:
+            return plurk['qualifier_translated']
+        else:
+            return plurk['qualifier']
