@@ -81,6 +81,7 @@ class PlurkTray:
 
     def create_response_window(self,event,plurkID):
         plurks = self.p.get_responses(plurkID)
+        print plurks
         window = gtk.Window()
         window.set_title("responses")
         window.set_size_request(300, 280)
